@@ -1,6 +1,8 @@
 define(function(require) {
 
     var Adapt = require('coreJS/adapt');
+    var AssessmentResultsView = require('extensions/adapt-contrib-assessment/js/adapt-contrib-assessment-resultsView');
+
 
     var AssessmentView = Backbone.View.extend({
         initialize: function() {
@@ -39,7 +41,9 @@ define(function(require) {
                 'feedbackTitle': this.model.get('_assessment')._completionMessage.title, 
                 'score': isPercentageBased ? scoreAsPercent + '%' : score
             });
-            Adapt.trigger('questionView:showFeedback', this);
+
+            // decide how to show feedback here
+            //Adapt.trigger('questionView:showFeedback', this);
 
             if (isPercentageBased) {
                 isPass = (scoreAsPercent >= scoreToPass) ? true : false; 
@@ -48,6 +52,20 @@ define(function(require) {
             }
 
             Adapt.trigger('assessment:complete', {isPass: isPass, score: score, scoreAsPercent: scoreAsPercent});
+
+
+            var alertObject = {
+                title: this.model.get('_assessment')._completionMessage.title,
+                body: this.model.get('_assessment')._completionMessage.message,
+                confirmText: this.model.get('_assessment')._showResultsButton,
+                _callbackEvent: "assessmentresults:showresults",
+                _showIcon: false
+            };
+            // SHOW ALERT TO RESULST VIEW
+            Adapt.trigger('notify:alert', alertObject);
+
+
+
         },
 
         setFeedbackMessage: function() {
@@ -115,8 +133,48 @@ define(function(require) {
 
         removeAssessment: function() {
             this.remove();
-        }
+        },
+
+        //RESULTS VIEW FUNCTIONS
+        results: {
+            show: function(callback) {
+                //CHANGE ROLLAY VIEW TO RESULTS VIEW
+                Adapt.rollay.model.set("forceShow", true);
+                Adapt.rollay.setCustomView( new AssessmentResultsView() );
+                
+                //RESHOW ROLLAY
+                //Adapt.rollay.hide(0);
+                Adapt.rollay.render();
+                Adapt.rollay.show(function() {
+                    Adapt.trigger("assessmentresults:resultsopened");
+                    if (typeof callback == "function") callback();
+                });
+                //
+                //Adapt.bottomnavigation.render();
+            },
+            hide: function(callback) {
+                Adapt.rollay.hide(function() {
+                    Adapt.trigger("assessmentresults:resultsclosed");
+                    if (typeof callback == "function") callback();
+                });
+                //
+                //Adapt.bottomnavigation.render();
+            }
+        },
+
         
+    });
+    
+    //AssessmentView = new AssessmentView();
+
+    //AssessmentView.views['results'] = new AssessmentResultsView();
+    //AssessmentView.views['results'].parent = AssessmentView;
+
+    //back button clicked
+    Adapt.on("navigation:backButton",  function () { 
+        if (Adapt.rollay.model.get("forceShow")) return;
+        Adapt.rollay.hide.call(Adapt.rollay); 
+        console.log('hi rollay here');
     });
 
     Adapt.on('articleView:postRender', function(view) {
@@ -124,5 +182,38 @@ define(function(require) {
             new AssessmentView({model:view.model});
         }
     });
+
+    Adapt.on('assessmentresults:showresults', function(view) {
+        //HIDE PAGELEVELPROGRESS NAV
+            //AssessmentView.pagelevelprogress.hide(0);
+
+            //MOVE BACK TO MAIN MENU
+            //var parentId = Adapt.findById(AssessmentView.views['assessment'].model.get("_parentId")).get("_parentId");
+            //Backbone.history.navigate("#/id/" + parentId, {trigger: true, replace: true});
+
+            //SHOW THE RESULTS
+            //AssessmentView.results.show();
+
+
+
+            //CHANGE ROLLAY VIEW TO RESULTS VIEW
+            Adapt.rollay.model.set("forceShow", false);
+            Adapt.rollay.setCustomView( new AssessmentResultsView() );
+            
+            //RESHOW ROLLAY
+            //Adapt.rollay.hide(0);
+            Adapt.rollay.render();
+            Adapt.rollay.show(function() {
+                Adapt.trigger("assessmentresults:resultsopened");
+                if (typeof callback == "function") callback();
+            });
+            //
+            //Adapt.bottomnavigation.render();
+
+            //SHOW ASSIST LEARN NAV
+            //AssessmentView.navigation.show();
+    });
+
+//return AssessmentView;
 
 });
