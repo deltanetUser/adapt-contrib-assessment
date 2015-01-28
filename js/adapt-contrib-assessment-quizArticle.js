@@ -3,7 +3,6 @@ define(function(require) {
     var Adapt = require('coreJS/adapt');
     var AssessmentResultsView = require('extensions/adapt-contrib-assessment/js/adapt-contrib-assessment-resultsView');
 
-
     var AssessmentView = Backbone.View.extend({
         initialize: function() {
             this.listenTo(this.model, 'change:_isComplete', this.assessmentComplete);
@@ -36,11 +35,28 @@ define(function(require) {
             var score = this.getScore();
             var scoreAsPercent = this.getScoreAsPercent();
             var isPass = false;
+
+            // SET MODELS FEEDBACK MESSAGE
             this.setFeedbackMessage();
             this.model.set({
                 'feedbackTitle': this.model.get('_assessment')._completionMessage.title, 
                 'score': isPercentageBased ? scoreAsPercent + '%' : score
             });
+
+
+            // results alert
+            var alertObject = {
+                title: this.model.get('_assessment')._completionMessage.title,
+                body: this.model.get('feedbackMessage'),
+                confirmText: this.model.get('_assessment')._showResultsButton,
+                _callbackEvent: "assessmentresults:showresults",
+                _showIcon: false
+            };
+            // SHOW ALERT TO RESULST VIEW
+            Adapt.trigger('notify:alert', alertObject);
+
+            // show the result navigation
+            topNavigationView = new TopNavigationView();
 
             // decide how to show feedback here
             //Adapt.trigger('questionView:showFeedback', this);
@@ -53,21 +69,8 @@ define(function(require) {
 
             Adapt.trigger('assessment:complete', {isPass: isPass, score: score, scoreAsPercent: scoreAsPercent});
 
-
-            var alertObject = {
-                title: this.model.get('_assessment')._completionMessage.title,
-                body: this.model.get('_assessment')._completionMessage.message,
-                confirmText: this.model.get('_assessment')._showResultsButton,
-                _callbackEvent: "assessmentresults:showresults",
-                _showIcon: false
-            };
-            // SHOW ALERT TO RESULST VIEW
-            Adapt.trigger('notify:alert', alertObject);
-
-
-
         },
-
+// SETS THE FEEDBACK MESSAGE IN THE MODEL
         setFeedbackMessage: function() {
             var feedback = (this.model.get('_assessment')._completionMessage.message);
 
@@ -136,39 +139,62 @@ define(function(require) {
         },
 
         //RESULTS VIEW FUNCTIONS
-        results: {
-            show: function(callback) {
-                //CHANGE ROLLAY VIEW TO RESULTS VIEW
-                Adapt.rollay.model.set("forceShow", true);
-                Adapt.rollay.setCustomView( new AssessmentResultsView() );
-                
-                //RESHOW ROLLAY
-                //Adapt.rollay.hide(0);
-                Adapt.rollay.render();
-                Adapt.rollay.show(function() {
-                    Adapt.trigger("assessmentresults:resultsopened");
-                    if (typeof callback == "function") callback();
-                });
-                //
-                //Adapt.bottomnavigation.render();
-            },
-            hide: function(callback) {
-                Adapt.rollay.hide(function() {
-                    Adapt.trigger("assessmentresults:resultsclosed");
-                    if (typeof callback == "function") callback();
-                });
-                //
-                //Adapt.bottomnavigation.render();
-            }
+        showResults: function(callback) {
+            //CHANGE ROLLAY VIEW TO RESULTS VIEW
+            Adapt.rollay.model.set("forceShow", false);
+            Adapt.rollay.setCustomView( new AssessmentResultsView() );
+
+            //RESHOW ROLLAY
+            Adapt.rollay.render();
+            Adapt.rollay.show(function() {
+                Adapt.trigger("assessmentresults:resultsopened");
+                if (typeof callback == "function") callback();
+            });
+
+            this.model.set('_assessment')._isResultsShown = true;
+        },
+
+        hideResults: function(callback) {
+            Adapt.rollay.hide(function() {
+                Adapt.trigger("assessmentresults:resultsclosed");
+                if (typeof callback == "function") callback();
+            });
+            this.model.set('_assessment')._isResultsShown = false;
         },
 
         
     });
-    
-    //AssessmentView = new AssessmentView();
 
-    //AssessmentView.views['results'] = new AssessmentResultsView();
-    //AssessmentView.views['results'].parent = AssessmentView;
+    var TopNavigationView = Backbone.View.extend({
+
+        tagName: 'a',
+
+        className: 'la-results-icon',
+
+        initialize: function() {
+            this.listenTo(Adapt, 'remove', this.remove);
+            this.$el.attr('href', '#');
+            this.render();
+        },
+
+        events: {
+            'click .guided-learning-item a': 'onResultsClicked'
+        },
+
+        render: function() {
+            var template = Handlebars.templates["assessment-topNavigationView"];
+            $('.navigation-drawer-toggle-button').after(this.$el.html(template({})));
+            return this;
+        },
+
+        onResultsClicked: function(event) {
+            console.log(this.model.get('_assessment')._isResultsShown);
+            
+            event.preventDefault();
+           Adapt.trigger("assessmentresults:showresults");
+        }
+
+    });
 
     //back button clicked
     Adapt.on("navigation:backButton",  function () { 
@@ -184,36 +210,19 @@ define(function(require) {
     });
 
     Adapt.on('assessmentresults:showresults', function(view) {
-        //HIDE PAGELEVELPROGRESS NAV
-            //AssessmentView.pagelevelprogress.hide(0);
-
-            //MOVE BACK TO MAIN MENU
-            //var parentId = Adapt.findById(AssessmentView.views['assessment'].model.get("_parentId")).get("_parentId");
-            //Backbone.history.navigate("#/id/" + parentId, {trigger: true, replace: true});
-
-            //SHOW THE RESULTS
-            //AssessmentView.results.show();
-
-
 
             //CHANGE ROLLAY VIEW TO RESULTS VIEW
             Adapt.rollay.model.set("forceShow", false);
             Adapt.rollay.setCustomView( new AssessmentResultsView() );
-            
+
+            this.model.set('_assessment')._isResultsShown = true;
+
             //RESHOW ROLLAY
-            //Adapt.rollay.hide(0);
             Adapt.rollay.render();
             Adapt.rollay.show(function() {
                 Adapt.trigger("assessmentresults:resultsopened");
                 if (typeof callback == "function") callback();
             });
-            //
-            //Adapt.bottomnavigation.render();
-
-            //SHOW ASSIST LEARN NAV
-            //AssessmentView.navigation.show();
     });
-
-//return AssessmentView;
 
 });

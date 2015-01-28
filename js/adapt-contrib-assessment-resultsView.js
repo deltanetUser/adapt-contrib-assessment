@@ -1,9 +1,3 @@
-/*
-* adapt-learnerassistant-resultsView
-* License - http://github.com/adaptlearning/adapt_framework/LICENSE
-* Maintainers - Oliver Foster <oliver.foster@kineo.com>
-*/
-
 define(function(require) {
 
 	var Adapt = require('coreJS/adapt');
