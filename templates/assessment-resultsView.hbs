@@ -3,8 +3,13 @@
 		
 		<div class="begin-instructions">
 			<div class="begin-instructions-inner">
-				<h4 class="title">Title</h4>
-				<div class="body"><span class="score">You scored </span></div>
+				<h4 class="title">{{{assessmentResultsTitle}}}</h4>
+				{{#if assessmentResultsFeedback}}
+				<div class="body"><span class="score">{{{assessmentResultsFeedback}}}</span></div>
+				{{/if}}
+				{{#if assessmentResultsInstruction}}
+				<div class="body"><span class="score">{{{assessmentResultsInstruction}}}</span></div>
+				{{/if}}
 			</div>
 		</div>
 	

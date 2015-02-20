@@ -8,10 +8,37 @@ define(function(require) {
 			//UI
 			className : "la-results",
 			template : "assessment-resultsView",
+
+			initialize: function() {
+
+        var assessmentResultsText = {};
+        var finalFeedbackText;
+        if (Adapt.course.get('_assessmentResults')) {
+        	assessmentResultsText = Adapt.course.get('_assessmentResults');
+        	finalFeedbackText = Adapt.course.get('_assessmentResults')._resultsPage.feedback;
+        };
+
+        if (finalFeedbackText) {
+        	var finalFeedbackText = (Adapt.course.get('_assessmentResults')._resultsPage.feedback);
+
+          finalFeedbackText = finalFeedbackText.replace("[SCORE]", this.model.get('score'));
+          finalFeedbackText = finalFeedbackText.replace("[MAXSCORE]", this.model.get('maxScore'));
+        };
+
+        this.model.set('assessmentResultsTitle', assessmentResultsText._resultsPage.title);
+        this.model.set('assessmentResultsInstruction', assessmentResultsText._resultsPage.instruction);
+        this.model.set('assessmentResultsFeedback', finalFeedbackText);
+			},
+
 			postRender: function() {
-				//update filter buttons
-				//this.$el.find(".la-results-filter a").removeClass("selected");
-				//this.$el.find(".la-results-filter a[data-filter='" + this.model.get("options").filter + "']").addClass("selected");
+				if (!Adapt.course.get("_isResultsShown") || Adapt.course.get("_isResultsShown") == undefined ) {
+            Adapt.course.set("_isResultsShown", true);
+        }
+			},
+			remove: function() {
+				if (Adapt.course.get("_isResultsShown")) {
+            Adapt.course.set("_isResultsShown", false);
+        }
 			}
 		},
 		{
@@ -21,7 +48,6 @@ define(function(require) {
 			},
 			onCloseClick: function(event) {
 				event.preventDefault();
-				this.parent.results.hide();
 			}
 		}
 	);

@@ -1,120 +1,52 @@
 define(function(require) {
 
-	var Adapt = require('coreJS/adapt');
-	var Backbone = require('backbone');
+  var Adapt = require('coreJS/adapt');
+  var Backbone = require('backbone');
 
-	var ProgressDrawerView = Backbone.View.extend(
-		{
-			//UI
-			tagName: "div",
-			className: "la-tutor-icon",
-			template: "assessment-topNavigationView",
-			initialize: function() {
-				this.listenTo(Adapt, 'remove', this.remove);
-			},
-			preRender: function() {
-				this.model = this.parent.model;
-			},
-			postRender: function() {
-				this.$el.attr("href","#");
-				this.undelegateEvents();
-				this.delegateEvents();
-			}
-		},
-		{
-			//EVENTS
-			events: {
-				'click .title-bar': 'onIconClick',
-				'click .close': 'onEndClick'
-			},
-			onEndClick: function() {
-				var settings = this.model.get("settings");
-				if (this.parent.model.get("isCertificateShown")) {
-					if (!settings._quitGuidedLearning._show) {
+  var TopNavigationView = Backbone.View.extend({
 
-						Adapt.trigger("learnerassistant:gracefullQuit");
+        tagName: 'a',
 
-					} else {
+        className: 'la-results-icon',
 
-						var promptObject = {
-					    title: settings._quitCertificate.title,
-					    body: settings._quitCertificate.body,
-					    _prompts:[
-						        {
-						            promptText: settings._quitCertificate.buttons.yes,
-						            _callbackEvent: "learnerassistant:gracefullQuit",
-						        },
-						        {
-						            promptText: settings._quitCertificate.buttons.no,
-						            _callbackEvent: ""
-						        }
-						    ],
-						    _showIcon: true
-						}
+        initialize: function() {
+            this.listenTo(Adapt, 'remove', this.remove);
+            this.$el.attr('href', '#');
+            this.render();
+        },
 
-						Adapt.trigger('notify:prompt', promptObject);
-					}
-				} else {
-					if (!settings._quitGuidedLearning._show) {
+        events: {
+            'click': 'onResultsClicked'
+        },
 
-						Adapt.trigger("learnerassistant:gracefullQuit");
+        render: function() {
+            
+            var template = Handlebars.templates["assessment-topNavigationView"];
+            $('.navigation-drawer-toggle-button').after(this.$el.html(template({})));
+            return this;
+        },
 
-					} else {
+        onResultsClicked: function(event) {
 
-						var promptObject = {
-					    title: settings._quitGuidedLearning.title,
-					    body: settings._quitGuidedLearning.body,
-					    _prompts:[
-						        {
-						            promptText: settings._quitGuidedLearning.buttons.yes,
-						            _callbackEvent: "learnerassistant:gracefullQuit",
-						        },
-						        {
-						            promptText: settings._quitGuidedLearning.buttons.no,
-						            _callbackEvent: ""
-						        }
-						    ],
-						    _showIcon: true
-						}
+            if (Adapt.course.get("_isResultsShown") !== undefined) {
+                if (Adapt.course.get("_isResultsShown")) {
+                    console.log('close results');
+                    event.preventDefault();
+                    Adapt.trigger("assessmentresults:hideresults");
+                } else {
+                    console.log('open results');
+                    event.preventDefault();
+                    Adapt.trigger("assessmentresults:showresults");
+                }
+            } else {
+                console.log('_isResultsShown is undefined');
+                //event.preventDefault();
+                //Adapt.trigger("assessmentresults:showresults");
+            }
+        }
 
-						Adapt.trigger('notify:prompt', promptObject);
-					}
-				}
-			},
-			onIconClick: function(event) {
-				event.preventDefault();
-				if (this.parent.model.get("isCertificateShown")) {
-					var settings = this.parent.model.get("settings");
-					if (! settings._certificateTutorButton._show) return;
-					
-					var alertObject = {
-					    title: settings._certificateTutorButton.title,
-					    body: settings._certificateTutorButton.body,
-					    confirmText: settings._certificateTutorButton.button,
-					    _showIcon: false
-					};
+    });
 
-					Adapt.trigger('notify:alert', alertObject);
-				} else if (!this.parent.model.get("isInReview")) {
-					//FINISHED
-					var settings = this.parent.model.get("settings");
-					if (! settings._resultsTutorButton._show) return;
-					
-					var alertObject = {
-					    title: settings._resultsTutorButton.title,
-					    body: settings._resultsTutorButton.body,
-					    confirmText: settings._resultsTutorButton.button,
-					    _showIcon: false
-					};
+return TopNavigationView;
 
-					Adapt.trigger('notify:alert', alertObject);
-				} else {
-					if (this.parent.model.get("isResultsShown")) this.parent.results.hide();
-					else this.parent.results.show();
-				}
-			}
-			
-		}
-	);
-	return ProgressDrawerView;
 })

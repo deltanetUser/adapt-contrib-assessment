@@ -2,6 +2,9 @@ define(function(require) {
 
     var Adapt = require('coreJS/adapt');
     var AssessmentResultsView = require('extensions/adapt-contrib-assessment/js/adapt-contrib-assessment-resultsView');
+    var AssessmentTopNavigationView = require('extensions/adapt-contrib-assessment/js/adapt-contrib-assessment-topNavigationView');
+
+// CAN THIS BE REMOVED FROM A BACKBONE VIEW AND HAVE FUNCTIONS AT MODULE LEVEL.
 
     var AssessmentView = Backbone.View.extend({
         initialize: function() {
@@ -34,15 +37,27 @@ define(function(require) {
             var scoreToPass = this.model.get('_assessment')._scoreToPass;
             var score = this.getScore();
             var scoreAsPercent = this.getScoreAsPercent();
+            var maxScore = this.getMaxScore().toString();
             var isPass = false;
 
             // SET MODELS FEEDBACK MESSAGE
             this.setFeedbackMessage();
             this.model.set({
                 'feedbackTitle': this.model.get('_assessment')._completionMessage.title, 
-                'score': isPercentageBased ? scoreAsPercent + '%' : score
+                'score': isPercentageBased ? scoreAsPercent + '%' : score,
+                'maxScore': isPercentageBased ? 100 + '%' : maxScore
             });
 
+            if (isPercentageBased) {
+                isPass = (scoreAsPercent >= scoreToPass) ? true : false; 
+            } else {
+                isPass = (score >= scoreToPass) ? true : false;
+            }
+
+            Adapt.trigger('assessment:complete', {isPass: isPass, score: score, scoreAsPercent: scoreAsPercent});
+
+            // create the resuls top navigation view
+            setupResultsNavigation();
 
             // results alert
             var alertObject = {
@@ -54,20 +69,6 @@ define(function(require) {
             };
             // SHOW ALERT TO RESULST VIEW
             Adapt.trigger('notify:alert', alertObject);
-
-            // show the result navigation
-            topNavigationView = new TopNavigationView();
-
-            // decide how to show feedback here
-            //Adapt.trigger('questionView:showFeedback', this);
-
-            if (isPercentageBased) {
-                isPass = (scoreAsPercent >= scoreToPass) ? true : false; 
-            } else {
-                isPass = (score >= scoreToPass) ? true : false;
-            }
-
-            Adapt.trigger('assessment:complete', {isPass: isPass, score: score, scoreAsPercent: scoreAsPercent});
 
         },
 // SETS THE FEEDBACK MESSAGE IN THE MODEL
@@ -136,93 +137,71 @@ define(function(require) {
 
         removeAssessment: function() {
             this.remove();
-        },
-
-        //RESULTS VIEW FUNCTIONS
-        showResults: function(callback) {
-            //CHANGE ROLLAY VIEW TO RESULTS VIEW
-            Adapt.rollay.model.set("forceShow", false);
-            Adapt.rollay.setCustomView( new AssessmentResultsView() );
-
-            //RESHOW ROLLAY
-            Adapt.rollay.render();
-            Adapt.rollay.show(function() {
-                Adapt.trigger("assessmentresults:resultsopened");
-                if (typeof callback == "function") callback();
-            });
-
-            this.model.set('_assessment')._isResultsShown = true;
-        },
-
-        hideResults: function(callback) {
-            Adapt.rollay.hide(function() {
-                Adapt.trigger("assessmentresults:resultsclosed");
-                if (typeof callback == "function") callback();
-            });
-            this.model.set('_assessment')._isResultsShown = false;
-        },
-
-        
-    });
-
-    var TopNavigationView = Backbone.View.extend({
-
-        tagName: 'a',
-
-        className: 'la-results-icon',
-
-        initialize: function() {
-            this.listenTo(Adapt, 'remove', this.remove);
-            this.$el.attr('href', '#');
-            this.render();
-        },
-
-        events: {
-            'click .guided-learning-item a': 'onResultsClicked'
-        },
-
-        render: function() {
-            var template = Handlebars.templates["assessment-topNavigationView"];
-            $('.navigation-drawer-toggle-button').after(this.$el.html(template({})));
-            return this;
-        },
-
-        onResultsClicked: function(event) {
-            console.log(this.model.get('_assessment')._isResultsShown);
-            
-            event.preventDefault();
-           Adapt.trigger("assessmentresults:showresults");
         }
 
     });
 
-    //back button clicked
+    function setupResultsNavigation() {
+
+        if (Adapt.course.get("_assessmentResults")._isResultsNavShown !== undefined) {
+            Adapt.course.set("_isResultsNavShown", true)
+            new AssessmentTopNavigationView();
+        } else {
+            console.log('error: Assessment results values not set in course.json');
+        }
+
+    }
+
+    function showResults() {
+
+        Adapt.rollay.render();
+        Adapt.rollay.show(function() {
+            if (typeof callback == "function") callback();
+        });
+    }
+
+    function hideResults() {
+        if (Adapt.course.get("_isResultsShown")) {
+            Adapt.course.set("_isResultsShown", false);
+        }
+        Adapt.rollay.hide(function() {
+            if (typeof callback == "function") callback();
+        });
+    }
+
     Adapt.on("navigation:backButton",  function () { 
-        if (Adapt.rollay.model.get("forceShow")) return;
-        Adapt.rollay.hide.call(Adapt.rollay); 
-        console.log('hi rollay here');
+        //if (Adapt.rollay.model.get("forceShow")) return;
+        Adapt.rollay.hide.call(Adapt.rollay);
+        if (Adapt.course.get("_isResultsShown")) {
+            Adapt.course.set("_isResultsShown", false); 
+        }
+        console.log('hi rollay here, back button pressed');
     });
 
     Adapt.on('articleView:postRender', function(view) {
         if (view.model.get('_assessment') && view.model.get('_assessment')._isEnabled) {
             new AssessmentView({model:view.model});
+
+            Adapt.rollay.model.set("forceShow", true);
+
+            Adapt.rollay.setCustomView( new AssessmentResultsView({model:view.model}));
+
+        }
+
+    });
+// IF ITS A PAGE CHECK IF WE NEED TO SHOW RESULTS LINK
+    Adapt.on('router:page', function(pageModel) {
+        if (Adapt.course.get("_isResultsNavShown")) {
+            setupResultsNavigation();
         }
     });
 
-    Adapt.on('assessmentresults:showresults', function(view) {
+    Adapt.on('assessmentresults:showresults', function() {
+        showResults();
+    });
 
-            //CHANGE ROLLAY VIEW TO RESULTS VIEW
-            Adapt.rollay.model.set("forceShow", false);
-            Adapt.rollay.setCustomView( new AssessmentResultsView() );
-
-            this.model.set('_assessment')._isResultsShown = true;
-
-            //RESHOW ROLLAY
-            Adapt.rollay.render();
-            Adapt.rollay.show(function() {
-                Adapt.trigger("assessmentresults:resultsopened");
-                if (typeof callback == "function") callback();
-            });
+    Adapt.on('assessmentresults:hideresults', function() {
+        hideResults();
     });
 
 });

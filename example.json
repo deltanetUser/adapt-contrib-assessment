@@ -1,5 +1,5 @@
 // in articles.json
-
+// has settings and text for the article assessment and completion alert
 "_assessment": {
     "_isEnabled":true,
     "_isPercentageBased" : true,
@@ -30,13 +30,16 @@
 }
 
 // in course.json
-
+// contains text and settings for assessment results page and assessment results top navigation.
+// data options for "youScored" are [SCORE], [MAXSCORE]
 "_assessmentResults": {
-    "_start": {
+    "_resultsPage": {
         "title": "Welcome to your results",
-        "body": "%. Take a look at the revision plan we’ve drawn up for you below. It highlights the subjects that we recommend you review again.",
-        "youScored": "You scored"
-    }
+        "feedback": "You scored [SCORE] out of [MAXSCORE].",
+        "instruction": "Take a look at the revision plan we’ve drawn up for you below. It highlights the subjects that we recommend you review again."
+    },
+"_isResultsShown": false,
+"_isResultsNavShown": false
 }
 
 // rollay settings should also be put in course.json
@@ -48,6 +51,6 @@
     }
 }
 
-// in coumponents.json on tracked questions within the assessment
+// in components.json on tracked questions within the assessment
 
 "_associatedLearning": ["c-115","c-40","c-125"]
