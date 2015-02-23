@@ -6,28 +6,30 @@ define(function(require) {
 	var AssessmentResultsView = RollayView.extend(
 		{
 			//UI
-			className : "la-results",
+			className : "sr-results",
 			template : "assessment-resultsView",
 
 			initialize: function() {
 
         var assessmentResultsText = {};
         var finalFeedbackText;
+
         if (Adapt.course.get('_assessmentResults')) {
         	assessmentResultsText = Adapt.course.get('_assessmentResults');
-        	finalFeedbackText = Adapt.course.get('_assessmentResults')._resultsPage.feedback;
+        	finalFeedbackText = Adapt.course.get('_assessmentResults')._resultsPage.generalFeedback;
         };
 
         if (finalFeedbackText) {
-        	var finalFeedbackText = (Adapt.course.get('_assessmentResults')._resultsPage.feedback);
-
-          finalFeedbackText = finalFeedbackText.replace("[SCORE]", this.model.get('score'));
-          finalFeedbackText = finalFeedbackText.replace("[MAXSCORE]", this.model.get('maxScore'));
+          finalFeedbackText = finalFeedbackText.replace("[SCORE]", this.model.score);
+          finalFeedbackText = finalFeedbackText.replace("[MAXSCORE]", this.model.maxScore);
+          finalFeedbackText = finalFeedbackText.replace("[FEEDBACK]", this.model.bandedFeedback);
+          finalFeedbackText = finalFeedbackText.replace("[PERCENT]", this.model.scoreAsPercent);
         };
 
-        this.model.set('assessmentResultsTitle', assessmentResultsText._resultsPage.title);
-        this.model.set('assessmentResultsInstruction', assessmentResultsText._resultsPage.instruction);
-        this.model.set('assessmentResultsFeedback', finalFeedbackText);
+        this.model.assessmentResultsTitle = assessmentResultsText._resultsPage.title;
+        this.model.assessmentResultsInstruction = assessmentResultsText._resultsPage.instruction;
+        this.model.assessmentResultsFeedback = finalFeedbackText;
+
 			},
 
 			postRender: function() {
@@ -44,7 +46,7 @@ define(function(require) {
 		{
 			//INTERACTION
 			events : {
-				'click .la-close': 'onCloseClick'
+				'click .sa-close': 'onCloseClick'
 			},
 			onCloseClick: function(event) {
 				event.preventDefault();

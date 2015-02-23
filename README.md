@@ -12,7 +12,8 @@ A [sample JSON](https://github.com/adaptlearning/adapt-contrib-assessment/blob/m
     "_scoreToPass" : 60,
     "_completionMessage" : {
         "title" : "You have finished the assessment",
-        "message": "You have scored [SCORE] out of [MAXSCORE].  [FEEDBACK]"
+        "message": "You have scored [SCORE] out of [MAXSCORE].  [FEEDBACK]",
+        "_showResultsButton" : "See results"
     },
     "_bands": [
         {
@@ -35,13 +36,27 @@ A [sample JSON](https://github.com/adaptlearning/adapt-contrib-assessment/blob/m
 }
 ```
 
+Further values for the overall results must be added to the course.json:
+
+```json
+"_assessmentResults": {
+    "_resultsPage": {
+        "title": "Welcome to your results",
+        "generalFeedback": "generalFeedback": "<p>You scored [SCORE] out of [MAXSCORE] as a percentage that is [PERCENT].</p><p>[FEEDBACK]</p>",
+        "instruction": "You have finished this course. Feel free to go back over the course material. If you wish to re-take the assesment please close this window and try again."
+    },
+    "_isResultsShown": false,
+    "_isResultsNavShown": false
+}
+```
+
 A description of attributes is as follows:
 
 | Attribute        | Type| Description|
 | :------------ |:-------------|:-----|
 | _isPercentageBased        | bool |Set this to *true* if the assessment should work on percentages, or *false* for otherwise|
 | _scoreToPass         | int      | This is the 'pass' mark for the assessment.  If _isPercentageBased is set to *true* this will be a percentage, e.g. 60 would equal 60% |
-| _completionMessage            | object | An object containing *title* and *message* string values.  Note that *message* can contain the following placeholders: [SCORE], [MAXSCORE] and [FEEDBACK] |
+| _completionMessage            | object | An object containing *title* and *message* string values.  Note that *message* can contain the following placeholders: [SCORE], [MAXSCORE], [PERCENT] and [FEEDBACK] where [FEEDBACK] is the banded feedback for thier result taken from *_bands*.|
 | _bands          | object array | An array of objects whose purpose is to define the score banding.  The attributes required for each object are _score and *feedback*
 
 ###Events

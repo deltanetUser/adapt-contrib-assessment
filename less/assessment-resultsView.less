@@ -1,15 +1,11 @@
-@la-border-color : #a0a0a1;
+@sr-border-color : #a0a0a1;
 @instructions-bg-color : #FFF;
 @content-header-bg-color : #605E5D;
 @icon-color : #0088c2;
 
-#tutorialcontent {
-    display:none;
-}
-
 //padding-left
-.la-results {
-    
+.sr-results {
+
     position:absolute;
     top:0px;
     bottom:0px;
@@ -17,7 +13,7 @@
     overflow-y: auto;
     background-position: center top;
     background-size: cover;
-    background-repeat: repeat; 
+    background-repeat: repeat;
 
     .col {
 
@@ -25,7 +21,7 @@
 
         .col-inner {
 
-            .cell  {                
+            .cell  {       
                 padding: 12px 0px 12px 16px;
 
                 .cell-inner {
@@ -33,24 +29,24 @@
                 }
             }
         }
-    }      
+    }
 
     .row {
 
         margin-bottom: 8px;
-    }    
-    
-    .la-results-inner {
+    }
+
+    .sr-results-inner {
 
          width: 100%;
          /*max-width: 1440px;*/
          margin: auto;
-                      	
+
     }
 }
 
 //CONTENT
-.la-results .la-results-inner .la-content-container {
+.sr-results .sr-results-inner .sr-content-container {
 
     .begin-instructions {
 
@@ -76,7 +72,7 @@
         }
     }    
 
-    .la-content {
+    .sr-content {
 
         margin: 0 auto;
         max-width: @device-width-large;
@@ -84,7 +80,7 @@
     }    
      
 
-    .la-content-header-row {
+    .sr-content-header-row {
 
         background-color:@content-header-bg-color;
         margin-bottom: 8px;
@@ -104,11 +100,11 @@
             color: #fff;
             font-size: 16px;
             line-height: 17px;
-        }                    
+        }
     }
 
-    .la-content-bank-row {
-        
+    .sr-content-bank-row {
+
         //.adapt-border-radius(10px);
         background: rgb(255,255,255);
         //.adapt-background-image(linear-gradient(to bottom, rgba(255,255,255,1) 0%, rgba(223,222,222,1) 100%));
@@ -116,48 +112,48 @@
 
         .cell {
 
-            .cell-inner {                
+            .cell-inner {
 
                 .icon.not-mobile {
 
                     float: left;
                     padding: 10px;
                     margin-top: 2px;
-                    font-size: 16px;   
+                    font-size: 16px;
 
                     &.icon-flag {
                         color: @guided-primary-color;
                         display: block;
                         margin-left: -2px;
                         margin-top: -5px;
-                        padding-left: 0;                            
+                        padding-left: 0;
                     }
                     &.icon-book {
                         color: @guided-primary-color;
                         display: block;
                         margin-left: -2px;
                         margin-top: -5px;
-                        padding-left: 0;                            
-                    }    
-                }  
+                        padding-left: 0;
+                    }
+                }
                 .icon.mobile-only {
 
                     float: left;
-                    padding: 10px;                    
+                    padding: 10px;
                     color: @guided-primary-color;
                     font-size: 19px;
                     margin-left: -5px;
-                    margin-top: -4px;                  
-                }                         
+                    margin-top: -4px;
+                }
             }
-        }                  
-    }    
+        }
+    }
 }
 
 
 //DESKTOP
 @media all and (min-width:@device-width-medium) {
-    .la-results {    
+    .sr-results {
         .mobile-only {
             display: none;
         }
@@ -165,7 +161,7 @@
         .col {
 
             &:nth-child(1) {
-                width:25%;             
+                width:25%;
             }
             &:nth-child(2) {
                 width:75%;
@@ -173,58 +169,58 @@
             }
             /*&:nth-child(3) {
                 width:40%;
-            } */ 
+            } */
         }
 
-        .la-content-bank-row .col {
+        .sr-content-bank-row .col {
 
             /*&:nth-child(1), &:nth-child(2) {
                 .cell .cell-inner {                    
-                    border-right: 1px solid @la-border-color;
+                    border-right: 1px solid @sr-border-color;
                 }
             }*/
 
             &:nth-child(1) {
-                .cell .cell-inner {                    
-                    border-right: 1px solid @la-border-color;
+                .cell .cell-inner {
+                    border-right: 1px solid @sr-border-color;
                 }
-            }            
-        }      
+            }
+        }
     }
 }
 
 //TABLET/MOBILE
 @media all and (max-width:(@device-width-medium - 1px)) {
-    .la-results {    
-        .la-results-inner{
+    .sr-results {
+        .sr-results-inner{
             max-width: 699px;
         }
-        
+
         .not-mobile {
             display: none !important;
-        } 
-        
+        }
+
         .col  {
             width: 100%;
 
             &:nth-child(2) {
-                
+
                 .col-inner {
-                    border-top: 1px solid @la-border-color;
-                    /*border-bottom: 1px solid @la-border-color;*/
+                    border-top: 1px solid @sr-border-color;
+                    /*border-bottom: 1px solid @sr-border-color;*/
                 }
             }
-        }   
+        }
     }
 }
 
 //MOBILE
 @media all and (max-width:(@device-width-small - 1px)) {
-    .la-results { 
+    .sr-results {
 
-       .la-results-inner{
+       .sr-results-inner{
             max-width: 400px;
-        } 
+        }
     }
 }
 

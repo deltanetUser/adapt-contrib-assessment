@@ -7,7 +7,7 @@ define(function(require) {
 
         tagName: 'a',
 
-        className: 'la-results-icon',
+        className: 'sr-results-icon',
 
         initialize: function() {
             this.listenTo(Adapt, 'remove', this.remove);
@@ -22,7 +22,7 @@ define(function(require) {
         render: function() {
             
             var template = Handlebars.templates["assessment-topNavigationView"];
-            $('.navigation-drawer-toggle-button').after(this.$el.html(template({})));
+            $('.navigation-inner').append(this.$el.html(template({})));
             return this;
         },
 
@@ -30,18 +30,16 @@ define(function(require) {
 
             if (Adapt.course.get("_isResultsShown") !== undefined) {
                 if (Adapt.course.get("_isResultsShown")) {
-                    console.log('close results');
                     event.preventDefault();
                     Adapt.trigger("assessmentresults:hideresults");
                 } else {
-                    console.log('open results');
                     event.preventDefault();
                     Adapt.trigger("assessmentresults:showresults");
                 }
             } else {
                 console.log('_isResultsShown is undefined');
-                //event.preventDefault();
-                //Adapt.trigger("assessmentresults:showresults");
+                event.preventDefault();
+                Adapt.trigger("assessmentresults:showresults");
             }
         }
 

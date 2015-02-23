@@ -40,8 +40,8 @@ define(function(require) {
             var maxScore = this.getMaxScore().toString();
             var isPass = false;
 
-            // SET MODELS FEEDBACK MESSAGE
-            this.setFeedbackMessage();
+            // SET RESULTS MODEL TO PASS IN trigger('assessment:complete')
+            this.setAlertMessage();
             this.model.set({
                 'feedbackTitle': this.model.get('_assessment')._completionMessage.title, 
                 'score': isPercentageBased ? scoreAsPercent + '%' : score,
@@ -54,25 +54,31 @@ define(function(require) {
                 isPass = (score >= scoreToPass) ? true : false;
             }
 
-            Adapt.trigger('assessment:complete', {isPass: isPass, score: score, scoreAsPercent: scoreAsPercent});
+            // SETUP resultsModel
+            var resultsModel = {
+                // notify values
+                alertTitle: this.model.get('_assessment')._completionMessage.title,
+                alertBody: this.model.get('alertMessage'),
+                confirmText: this.model.get('_assessment')._completionMessage._showResultsButton,
+                // assessment values
+                isPass: isPass,
+                score: score,
+                scoreAsPercent: scoreAsPercent,
+                maxScore: this.model.get('maxScore'),
+                scoreToPass: scoreToPass,
+                isPercentageBased: isPercentageBased,
+                bandedFeedback: this.getBandedFeedback().toString(),
+                // resultView values
+                alertMessage: this.model.get('alertMessage')
 
-            // create the resuls top navigation view
-            setupResultsNavigation();
 
-            // results alert
-            var alertObject = {
-                title: this.model.get('_assessment')._completionMessage.title,
-                body: this.model.get('feedbackMessage'),
-                confirmText: this.model.get('_assessment')._showResultsButton,
-                _callbackEvent: "assessmentresults:showresults",
-                _showIcon: false
+                //_associatedLearning: _.clone(item.get("_associatedLearning"))
             };
-            // SHOW ALERT TO RESULST VIEW
-            Adapt.trigger('notify:alert', alertObject);
+
+            Adapt.trigger('assessment:complete', resultsModel);
 
         },
-// SETS THE FEEDBACK MESSAGE IN THE MODEL
-        setFeedbackMessage: function() {
+        setAlertMessage: function() {
             var feedback = (this.model.get('_assessment')._completionMessage.message);
 
             feedback = feedback.replace("[SCORE]", this.getScore());
@@ -80,7 +86,7 @@ define(function(require) {
             feedback = feedback.replace("[PERCENT]", this.getScoreAsPercent().toString());
             feedback = feedback.replace("[FEEDBACK]", this.getBandedFeedback().toString());
 
-            this.model.set('feedbackMessage', feedback);
+            this.model.set('alertMessage', feedback);
         },
 
         setUpQuiz: function() {
@@ -149,14 +155,14 @@ define(function(require) {
         } else {
             console.log('error: Assessment results values not set in course.json');
         }
-
     }
 
     function showResults() {
 
-        Adapt.rollay.render();
+        //Adapt.rollay.render();
         Adapt.rollay.show(function() {
-            if (typeof callback == "function") callback();
+            Adapt.trigger("assessmentresults:resultsopened");
+            //if (typeof callback == "function") callback();
         });
     }
 
@@ -165,13 +171,45 @@ define(function(require) {
             Adapt.course.set("_isResultsShown", false);
         }
         Adapt.rollay.hide(function() {
-            if (typeof callback == "function") callback();
+            Adapt.trigger("assessmentresults:resultsclosed");
+            //if (typeof callback == "function") callback();
         });
     }
 
+    Adapt.on('assessment:complete', function(resultsModel) {
+        // resultsModel will be object need to parse and stringyfy
+        var myNewModel =  JSON.parse(JSON.stringify(resultsModel));
+        // setup the notify, results rollay and naviation here.
+
+        // have data passed from assessment view.
+        // may need to manipulate data in assessment view before triggering assessment:complete
+
+        // create the results top navigation view
+        setupResultsNavigation();
+
+        // results alert
+        var alertObject = {
+            title: myNewModel.alertTitle,
+            body: myNewModel.alertMessage,
+            confirmText: myNewModel.confirmText,
+            _callbackEvent: "assessmentresults:showresults",
+            _showIcon: false
+        };
+
+        // SHOW ALERT TO RESULST VIEW
+        Adapt.trigger('notify:alert', alertObject);
+
+        Adapt.rollay.model.set("forceShow", true);
+        Adapt.rollay.setCustomView( new AssessmentResultsView({model:myNewModel}));
+
+    });
+
     Adapt.on("navigation:backButton",  function () { 
         //if (Adapt.rollay.model.get("forceShow")) return;
-        Adapt.rollay.hide.call(Adapt.rollay);
+        Adapt.rollay.hide(function() {
+            Adapt.trigger("assessmentresults:resultsclosed");
+            //if (typeof callback == "function") callback();
+        });
         if (Adapt.course.get("_isResultsShown")) {
             Adapt.course.set("_isResultsShown", false); 
         }
@@ -181,13 +219,7 @@ define(function(require) {
     Adapt.on('articleView:postRender', function(view) {
         if (view.model.get('_assessment') && view.model.get('_assessment')._isEnabled) {
             new AssessmentView({model:view.model});
-
-            Adapt.rollay.model.set("forceShow", true);
-
-            Adapt.rollay.setCustomView( new AssessmentResultsView({model:view.model}));
-
         }
-
     });
 // IF ITS A PAGE CHECK IF WE NEED TO SHOW RESULTS LINK
     Adapt.on('router:page', function(pageModel) {

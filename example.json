@@ -6,9 +6,9 @@
     "_scoreToPass" : 60,
     "_completionMessage" : {
         "title" : "You have finished the assessment",
-        "message": "You have scored [SCORE] out of [MAXSCORE].  [FEEDBACK]"
+        "message": "You have scored [SCORE] out of [MAXSCORE].  [FEEDBACK]",
+        "_showResultsButton" : "See results"
     },
-    "_showResultsButton" : "See results",
     "_bands": [
         {
             "_score": 0,
@@ -35,8 +35,8 @@
 "_assessmentResults": {
     "_resultsPage": {
         "title": "Welcome to your results",
-        "feedback": "You scored [SCORE] out of [MAXSCORE].",
-        "instruction": "Take a look at the revision plan we’ve drawn up for you below. It highlights the subjects that we recommend you review again."
+        "generalFeedback": "<p>You scored [SCORE] out of [MAXSCORE] as a percentage that is [PERCENT]%.</p><p>[FEEDBACK]</p>",
+        "instruction": "You have finished this course. Feel free to go back over the course material. If you wish to re-take the assesment please close this window and try again."
     },
 "_isResultsShown": false,
 "_isResultsNavShown": false
